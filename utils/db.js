@@ -48,7 +48,6 @@ class DBClient {
     if (!this.isConnected) {
       throw new Error('Database is not connected');
     }
-
     const usersCollection = this.client.db().collection('users');
     const count = await usersCollection.countDocuments();
     return count;
@@ -63,10 +62,21 @@ class DBClient {
     if (!this.isConnected) {
       throw new Error('Database is not connected');
     }
-
     const filesCollection = this.client.db().collection('files');
     const count = await filesCollection.countDocuments();
     return count;
+  }
+
+  /**
+   * Retrieves a reference to the users collection in the database.
+   * @returns {Promise<Collection>} A promise that resolves to the users collection.
+   * @throws {Error} Throws an error if the database is not connected.
+   */
+  async usersCollection() {
+    if (!this.isConnected) {
+      throw new Error('Database is not connected');
+    }
+    return this.client.db().collection('users');
   }
 }
 
