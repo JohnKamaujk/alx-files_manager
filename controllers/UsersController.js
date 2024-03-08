@@ -1,5 +1,7 @@
+import { ObjectId } from 'mongodb';
 import sha1 from 'sha1';
 import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
 /**
  * Controller for handling user-related operations.
@@ -40,6 +42,37 @@ class UsersController {
 
       const createdUser = { id: insertedId.toString(), email };
       res.status(201).json(createdUser);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  /**
+   * Handles retrieving of a user in session.
+   * @param {Request} req The request object.
+   * @param {Response} res The response object.
+   * @returns {void}
+   */
+  static async getMe(req, res) {
+    try {
+      const token = req.headers['x-token'];
+      if (!token) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const userId = await redisClient.get(`auth_${token}`);
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const usersCollection = await dbClient.usersCollection();
+      const user = await usersCollection.findOne({ _id: ObjectId(userId) });
+      if (!user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      res.status(200).json({ id: user._id.toString(), email: user.email });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });
