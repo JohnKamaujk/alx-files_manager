@@ -1,4 +1,4 @@
-import mongoDBCore from 'mongodb/lib/core';
+import { ObjectId } from 'mongodb';
 import sha1 from 'sha1';
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
@@ -67,9 +67,7 @@ class UsersController {
       }
 
       const usersCollection = await dbClient.usersCollection();
-      const user = await usersCollection.findOne({
-        _id: new mongoDBCore.BSON.ObjectId(userId),
-      });
+      const user = await usersCollection.findOne({ _id: ObjectId(userId) });
       if (!user) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
