@@ -84,7 +84,7 @@ class DBClient {
    * @returns {Promise<Collection>} A promise that resolves to the files collection.
    * @throws {Error} Throws an error if the database is not connected.
    */
-  async filessCollection() {
+  async filesCollection() {
     if (!this.isConnected) {
       throw new Error('Database is not connected');
     }
