@@ -39,82 +39,92 @@ const isValidId = (id) => {
   return true;
 };
 
-export default class FilesController {
+class FilesController {
   /**
    * Uploads a file.
    * @param {Request} req The Express request object.
    * @param {Response} res The Express response object.
    */
   static async postUpload(req, res) {
-    const { user } = req;
-    const name = req.body ? req.body.name : null;
-    const type = req.body ? req.body.type : null;
-    const parentId = req.body && req.body.parentId ? req.body.parentId : ROOT_FOLDER_ID;
-    const isPublic = req.body && req.body.isPublic ? req.body.isPublic : false;
-    const base64Data = req.body && req.body.data ? req.body.data : '';
+    try {
+      const { user } = req;
+      const { name, type } = req.body || {};
+      let { parentId, isPublic, data: base64Data } = req.body || {};
 
-    if (!name) {
-      res.status(400).json({ error: 'Missing name' });
-      return;
-    }
-    if (!type || !Object.values(VALID_FILE_TYPES).includes(type)) {
-      res.status(400).json({ error: 'Missing type' });
-      return;
-    }
-    if (!base64Data && type !== VALID_FILE_TYPES.folder) {
-      res.status(400).json({ error: 'Missing data' });
-      return;
-    }
-    if (parentId !== ROOT_FOLDER_ID && parentId !== ROOT_FOLDER_ID.toString()) {
-      const file = await dbClient.filesCollection().findOne({
-        _id: new ObjectId(isValidId(parentId) ? parentId : NULL_ID),
+      parentId = parentId || ROOT_FOLDER_ID;
+      isPublic = isPublic || false;
+      base64Data = base64Data || '';
+
+      if (!name) {
+        return res.status(400).json({ error: 'Missing name' });
+      }
+      if (!type || !Object.values(VALID_FILE_TYPES).includes(type)) {
+        return res.status(400).json({ error: 'Missing type' });
+      }
+      if (!base64Data && type !== VALID_FILE_TYPES.folder) {
+        return res.status(400).json({ error: 'Missing data' });
+      }
+      if (
+        parentId !== ROOT_FOLDER_ID
+        && parentId !== ROOT_FOLDER_ID.toString()
+      ) {
+        const fileCollection = await dbClient.filesCollection();
+        const file = await fileCollection.findOne({
+          _id: ObjectId(isValidId(parentId) ? parentId : NULL_ID),
+        });
+
+        if (!file) {
+          return res.status(400).json({ error: 'Parent not found' });
+        }
+        if (file.type !== VALID_FILE_TYPES.folder) {
+          return res.status(400).json({ error: 'Parent is not a folder' });
+        }
+      }
+
+      const userId = user._id.toString();
+      const baseDir = `${process.env.FOLDER_PATH || ''}`.trim().length > 0
+        ? process.env.FOLDER_PATH.trim()
+        : joinPath(tmpdir(), DEFAULT_ROOT_FOLDER);
+      // default baseDir == '/tmp/files_manager'
+      // or (on Windows) '%USERPROFILE%/AppData/Local/Temp/files_manager';
+      const newFile = {
+        userId: ObjectId(userId),
+        name,
+        type,
+        isPublic,
+        parentId:
+          parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString()
+            ? '0'
+            : ObjectId(parentId),
+      };
+      await mkDirAsync(baseDir, { recursive: true });
+
+      if (type !== VALID_FILE_TYPES.folder) {
+        const localPath = joinPath(baseDir, uuidv4());
+        await writeFileAsync(localPath, Buffer.from(base64Data, 'base64'));
+        newFile.localPath = localPath;
+      }
+
+      const fileCollection = await dbClient.filesCollection();
+      const insertionInfo = await fileCollection.insertOne(newFile);
+      const fileId = insertionInfo.insertedId.toString();
+
+      return res.status(201).json({
+        id: fileId,
+        userId,
+        name,
+        type,
+        isPublic,
+        parentId:
+          parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString()
+            ? 0
+            : parentId,
       });
-
-      if (!file) {
-        res.status(400).json({ error: 'Parent not found' });
-        return;
-      }
-      if (file.type !== VALID_FILE_TYPES.folder) {
-        res.status(400).json({ error: 'Parent is not a folder' });
-        return;
-      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
     }
-
-    const userId = user._id.toString();
-    const baseDir = process.env.FOLDER_PATH
-      ? process.env.FOLDER_PATH.trim()
-      : joinPath(tmpdir(), DEFAULT_ROOT_FOLDER);
-    const newFile = {
-      userId: new ObjectId(userId),
-      name,
-      type,
-      isPublic,
-      parentId:
-        parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString()
-          ? '0'
-          : new ObjectId(parentId),
-    };
-    await mkDirAsync(baseDir, { recursive: true });
-
-    if (type !== VALID_FILE_TYPES.folder) {
-      const localPath = joinPath(baseDir, uuidv4());
-      await writeFileAsync(localPath, Buffer.from(base64Data, 'base64'));
-      newFile.localPath = localPath;
-    }
-
-    const insertionInfo = await dbClient.filesCollection().insertOne(newFile);
-    const fileId = insertionInfo.insertedId.toString();
-
-    res.status(201).json({
-      id: fileId,
-      userId,
-      name,
-      type,
-      isPublic,
-      parentId:
-        parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString()
-          ? 0
-          : parentId,
-    });
   }
 }
+
+export default FilesController;
