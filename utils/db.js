@@ -76,7 +76,7 @@ class DBClient {
     if (!this.isConnected) {
       throw new Error('Database is not connected');
     }
-    return await this.client.db().collection('users');
+    return this.client.db().collection('users');
   }
 }
 
