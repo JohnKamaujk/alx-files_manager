@@ -16,11 +16,12 @@ class AuthController {
   static async getConnect(req, res) {
     try {
       const authHeader = req.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Basic ')) {
+      const authHeaderParts = authHeader.split(' ');
+      if (!authHeader || authHeaderParts.length !== 2 || authHeaderParts[0] !== 'Basic') {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const credentials = Buffer.from(authHeader.split(' ')[1], 'base64')
+      const credentials = Buffer.from(authHeaderParts[1], 'base64')
         .toString()
         .split(':');
       const email = credentials[0];
@@ -61,7 +62,7 @@ class AuthController {
       }
 
       await redisClient.del(`auth_${token}`);
-      return res.sendStatus(204);
+      return res.status(204).send();
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
