@@ -40,7 +40,7 @@ class UsersController {
 
       const { insertedId } = await usersCollection.insertOne(newUser);
 
-      const createdUser = { id: insertedId.toString(), email };
+      const createdUser = { email, id: insertedId.toString() };
       res.status(201).json(createdUser);
     } catch (error) {
       console.error(error);
