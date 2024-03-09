@@ -8,7 +8,7 @@ import redisClient from '../utils/redis';
  * @param {Request} req The request object.
  * @param {Response} res The response object.
  * @param {Function} next The next middleware function.
- * @returns {void}
+ * @returns {Response or next Func}
  */
 async function tokenAuth(req, res, next) {
   try {

@@ -78,6 +78,18 @@ class DBClient {
     }
     return this.client.db().collection('users');
   }
+
+  /**
+   * Retrieves a reference to the files collection in the database.
+   * @returns {Promise<Collection>} A promise that resolves to the files collection.
+   * @throws {Error} Throws an error if the database is not connected.
+   */
+  async filessCollection() {
+    if (!this.isConnected) {
+      throw new Error('Database is not connected');
+    }
+    return this.client.db().collection('files');
+  }
 }
 
 const dbClient = new DBClient();

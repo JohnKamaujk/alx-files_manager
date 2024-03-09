@@ -8,7 +8,7 @@ import dbClient from '../utils/db';
  * @param {Request} req The request object.
  * @param {Response} res The response object.
  * @param {Function} next The next middleware function.
- * @returns {void}
+ * @returns {Response or next Func}
  */
 async function basicAuth(req, res, next) {
   try {

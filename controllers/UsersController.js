@@ -9,7 +9,7 @@ class UsersController {
    * Handles the creation of a new user.
    * @param {Request} req The request object.
    * @param {Response} res The response object.
-   * @returns {void}
+   * @returns {Response}
    */
   static async postNew(req, res) {
     try {
@@ -50,7 +50,7 @@ class UsersController {
    * Handles retrieving of a user in session.
    * @param {Request} req The request object.
    * @param {Response} res The response object.
-   * @returns {void}
+   * @returns {Response}
    */
   static async getMe(req, res) {
     try {

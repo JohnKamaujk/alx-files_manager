@@ -9,7 +9,7 @@ class AuthController {
    * Handles the authentication of a user and generates an authentication token.
    * @param {Request} req - The request object.
    * @param {Response} res - The response object.
-   * @returns {void}
+   * @returns {Response}
    */
   static async getConnect(req, res) {
     try {
@@ -29,7 +29,7 @@ class AuthController {
    * Handles the disconnection of a user and deletes the authentication token.
    * @param {Request} req - The request object.
    * @param {Response} res - The response object.
-   * @returns {void}
+   * @returns {Response}
    */
   static async getDisconnect(req, res) {
     try {
