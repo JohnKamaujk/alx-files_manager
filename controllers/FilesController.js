@@ -16,28 +16,6 @@ const DEFAULT_ROOT_FOLDER = 'files_manager';
 const mkDirAsync = promisify(mkdir);
 const writeFileAsync = promisify(writeFile);
 const NULL_ID = Buffer.alloc(24, '0').toString('utf-8');
-const isValidId = (id) => {
-  const size = 24;
-  let i = 0;
-  const charRanges = [
-    [48, 57], // 0 - 9
-    [97, 102], // a - f
-    [65, 70], // A - F
-  ];
-  if (typeof id !== 'string' || id.length !== size) {
-    return false;
-  }
-  while (i < size) {
-    const c = id[i];
-    const code = c.charCodeAt(0);
-
-    if (!charRanges.some((range) => code >= range[0] && code <= range[1])) {
-      return false;
-    }
-    i += 1;
-  }
-  return true;
-};
 
 class FilesController {
   /**
@@ -71,7 +49,7 @@ class FilesController {
       ) {
         const fileCollection = await dbClient.filesCollection();
         const file = await fileCollection.findOne({
-          _id: ObjectId(isValidId(parentId) ? parentId : NULL_ID),
+          _id: ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID),
         });
 
         if (!file) {
