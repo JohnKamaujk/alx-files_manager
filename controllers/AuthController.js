@@ -27,15 +27,13 @@ class AuthController {
       const password = credentials[1];
 
       const usersCollection = await dbClient.usersCollection();
-      const user = await usersCollection.findOne({
-        $and: [{ email }, { password: sha1(password) }],
-      });
+      const user = await usersCollection.findOne({ email, password: sha1(password) });
       if (!user) {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
       const token = uuidv4();
-      await redisClient.set(`auth_${token}`, user._id.toString(), 24 * 60 * 60); // Store token for 24 hours
+      await redisClient.set(`auth_${token}`, user._id.toString(), 'EX', 24 * 60 * 60); // Store token for 24 hours
 
       return res.status(200).json({ token });
     } catch (error) {
