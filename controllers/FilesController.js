@@ -40,14 +40,18 @@ const isValidId = (id) => {
 };
 
 export default class FilesController {
+  /**
+   * Uploads a file.
+   * @param {Request} req The Express request object.
+   * @param {Response} res The Express response object.
+   */
   static async postUpload(req, res) {
     const { user } = req;
-    const { name, type } = req.body || {};
-    let { parentId, isPublic, data: base64Data } = req.body || {};
-
-    parentId = parentId || ROOT_FOLDER_ID;
-    isPublic = isPublic || false;
-    base64Data = base64Data || '';
+    const name = req.body ? req.body.name : null;
+    const type = req.body ? req.body.type : null;
+    const parentId = req.body && req.body.parentId ? req.body.parentId : ROOT_FOLDER_ID;
+    const isPublic = req.body && req.body.isPublic ? req.body.isPublic : false;
+    const base64Data = req.body && req.body.data ? req.body.data : '';
 
     if (!name) {
       res.status(400).json({ error: 'Missing name' });
