@@ -61,7 +61,7 @@ class AuthController {
       }
 
       await redisClient.del(`auth_${token}`);
-      return res.status(204).send();
+      return res.sendStatus(204);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
