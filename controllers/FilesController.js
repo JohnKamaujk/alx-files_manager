@@ -16,6 +16,7 @@ const DEFAULT_ROOT_FOLDER = 'files_manager';
 const mkDirAsync = promisify(mkdir);
 const writeFileAsync = promisify(writeFile);
 const NULL_ID = Buffer.alloc(24, '0').toString('utf-8');
+const MAX_FILES_PER_PAGE = 20;
 
 class FilesController {
   /**
@@ -95,6 +96,86 @@ class FilesController {
             ? 0
             : parentId,
       });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  /**
+   * Retrieves files associated with a specific user by id.
+   * @param {Request} req The Express request object.
+   * @param {Response} res The Express response object.
+   * @returns {Response}
+   */
+  static async getShow(req, res) {
+    try {
+      const { user } = req;
+      const { id } = req.params;
+      const filesCollection = await dbClient.filesCollection();
+      const file = await filesCollection.findOne({
+        _id: ObjectId(id),
+        userId: ObjectId(user._id),
+      });
+
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      return res.status(200).json(file);
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  /**
+   * Retrieves files associated with a specific user.
+   * @param {Request} req The Express request object.
+   * @param {Response} res The Express response object.
+   */
+  static async getIndex(req, res) {
+    try {
+      const { user } = req;
+      const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
+      const page = parseInt(req.query.page, 10) || 0;
+
+      const filesFilter = {
+        userId: user._id,
+        parentId:
+          parentId === ROOT_FOLDER_ID.toString()
+            ? parentId
+            : ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID),
+      };
+
+      const filesCollection = await dbClient.filesCollection();
+      const files = filesCollection
+        .aggregate([
+          { $match: filesFilter },
+          { $sort: { _id: -1 } },
+          { $skip: page * MAX_FILES_PER_PAGE },
+          { $limit: MAX_FILES_PER_PAGE },
+          {
+            $project: {
+              _id: 0,
+              id: '$_id',
+              userId: '$userId',
+              name: '$name',
+              type: '$type',
+              isPublic: '$isPublic',
+              parentId: {
+                $cond: {
+                  if: { $eq: ['$parentId', '0'] },
+                  then: 0,
+                  else: '$parentId',
+                },
+              },
+            },
+          },
+        ])
+        .toArray();
+
+      return res.status(200).json(files);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
