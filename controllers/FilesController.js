@@ -148,21 +148,26 @@ class FilesController {
   static async getIndex(req, res) {
     try {
       const { user } = req;
-      const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
+      const { parentId } = req.query;
       const page = parseInt(req.query.page, 10) || 0;
       const filesFilter = {
         userId: user._id,
-        parentId:
-          parentId === ROOT_FOLDER_ID.toString()
-            ? ROOT_FOLDER_ID.toString()
-            : ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID),
       };
+      if (parentId) {
+        if (parentId === ROOT_FOLDER_ID.toString()) {
+          filesFilter.parentId = ROOT_FOLDER_ID.toString();
+        } else if (ObjectId.isValid(parentId)) {
+          filesFilter.parentId = ObjectId(parentId);
+        } else {
+          filesFilter.parentId = ObjectId(NULL_ID);
+        }
+      }
 
       const filesCollection = await dbClient.filesCollection();
       const files = await filesCollection
         .aggregate([
           { $match: filesFilter },
-          { $sort: { _id: -1 } },
+          { $sort: { _id: 1 } },
           { $skip: page * MAX_FILES_PER_PAGE },
           { $limit: MAX_FILES_PER_PAGE },
           {
