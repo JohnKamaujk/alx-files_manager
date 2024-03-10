@@ -103,7 +103,7 @@ class FilesController {
   }
 
   /**
-   * Retrieves files associated with a specific user by id.
+   * Retrieves file associated with a specific user by id.
    * @param {Request} req The Express request object.
    * @param {Response} res The Express response object.
    * @returns {Response}
@@ -182,8 +182,7 @@ class FilesController {
             },
           },
         },
-      ])
-        .toArray();
+      ]).toArray();
 
       return res.status(200).json(files);
     } catch (error) {
