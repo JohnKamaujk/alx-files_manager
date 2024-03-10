@@ -151,7 +151,7 @@ class FilesController {
       const page = parseInt(req.query.page, 10) || 0;
 
       const filesFilter = {
-        userId: user._id,
+        userId: ObjectId(user._id),
         parentId:
           parentId === ROOT_FOLDER_ID.toString()
             ? parentId
