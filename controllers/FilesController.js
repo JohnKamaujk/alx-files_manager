@@ -149,8 +149,9 @@ class FilesController {
     try {
       const { user } = req;
       const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
-      const page = parseInt(req.query.page, 10) || 0;
-
+      const page = /\d+/.test((req.query.page || '').toString())
+        ? Number.parseInt(req.query.page, 10)
+        : 0;
       const filesFilter = {
         userId: ObjectId(user._id),
         parentId:
@@ -160,29 +161,31 @@ class FilesController {
       };
 
       const filesCollection = await dbClient.filesCollection();
-      const files = filesCollection.aggregate([
-        { $match: filesFilter },
-        { $sort: { _id: -1 } },
-        { $skip: page * MAX_FILES_PER_PAGE },
-        { $limit: MAX_FILES_PER_PAGE },
-        {
-          $project: {
-            _id: 0,
-            id: '$_id',
-            userId: '$userId',
-            name: '$name',
-            type: '$type',
-            isPublic: '$isPublic',
-            parentId: {
-              $cond: {
-                if: { $eq: ['$parentId', '0'] },
-                then: 0,
-                else: '$parentId',
+      const files = filesCollection
+        .aggregate([
+          { $match: filesFilter },
+          { $sort: { _id: -1 } },
+          { $skip: page * MAX_FILES_PER_PAGE },
+          { $limit: MAX_FILES_PER_PAGE },
+          {
+            $project: {
+              _id: 0,
+              id: '$_id',
+              userId: '$userId',
+              name: '$name',
+              type: '$type',
+              isPublic: '$isPublic',
+              parentId: {
+                $cond: {
+                  if: { $eq: ['$parentId', '0'] },
+                  then: 0,
+                  else: '$parentId',
+                },
               },
             },
           },
-        },
-      ]).toArray();
+        ])
+        .toArray();
 
       return res.status(200).json(files);
     } catch (error) {
