@@ -153,8 +153,8 @@ class FilesController {
       const filesFilter = {
         userId: user._id,
         parentId:
-          parentId === ROOT_FOLDER_ID.toString()
-            ? parentId
+          parentId === ROOT_FOLDER_ID || ROOT_FOLDER_ID.toString()
+            ? ROOT_FOLDER_ID.toString()
             : ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID),
       };
 
