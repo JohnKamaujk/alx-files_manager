@@ -158,8 +158,6 @@ class FilesController {
           filesFilter.parentId = ROOT_FOLDER_ID.toString();
         } else if (ObjectId.isValid(parentId)) {
           filesFilter.parentId = ObjectId(parentId);
-        } else {
-          filesFilter.parentId = ObjectId(NULL_ID);
         }
       }
 
