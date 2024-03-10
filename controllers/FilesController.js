@@ -124,17 +124,7 @@ class FilesController {
         return res.status(404).json({ error: 'Not found' });
       }
 
-      return res.status(200).json({
-        id,
-        userId,
-        name: file.name,
-        type: file.type,
-        isPublic: file.isPublic,
-        parentId:
-          file.parentId === ROOT_FOLDER_ID.toString()
-            ? 0
-            : file.parentId.toString(),
-      });
+      return res.json(file);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
@@ -191,7 +181,7 @@ class FilesController {
         ])
         .toArray();
 
-      return res.status(200).json(files);
+      return res.json(files);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
