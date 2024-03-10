@@ -108,7 +108,6 @@ class FilesController {
    * @param {Response} res The Express response object.
    * @returns {Response}
    */
-
   static async getShow(req, res) {
     try {
       const { user } = req;
@@ -124,7 +123,17 @@ class FilesController {
         return res.status(404).json({ error: 'Not found' });
       }
 
-      return res.json(file);
+      return res.status(200).json({
+        id,
+        userId,
+        name: file.name,
+        type: file.type,
+        isPublic: file.isPublic,
+        parentId:
+          file.parentId === ROOT_FOLDER_ID.toString()
+            ? 0
+            : file.parentId.toString(),
+      });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
@@ -181,7 +190,7 @@ class FilesController {
         ])
         .toArray();
 
-      return res.json(files);
+      return res.status(200).json(files);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
