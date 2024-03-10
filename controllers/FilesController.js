@@ -19,7 +19,7 @@ const NULL_ID = Buffer.alloc(24, '0').toString('utf-8');
 
 class FilesController {
   /**
-   * Uploads a file.
+   * creates file upload.
    * @param {Request} req The Express request object.
    * @param {Response} res The Express response object.
    * @returns {Response}
@@ -29,6 +29,7 @@ class FilesController {
       const { user } = req;
       const { name, type } = req.body;
       let { parentId, isPublic, data: base64Data } = req.body;
+      const fileCollection = await dbClient.filesCollection();
 
       parentId = parentId || ROOT_FOLDER_ID;
       isPublic = isPublic || false;
@@ -47,7 +48,6 @@ class FilesController {
         parentId !== ROOT_FOLDER_ID
         && parentId !== ROOT_FOLDER_ID.toString()
       ) {
-        const fileCollection = await dbClient.filesCollection();
         const file = await fileCollection.findOne({
           _id: ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID),
         });
@@ -83,9 +83,7 @@ class FilesController {
         newFile.localPath = localPath;
       }
 
-      const fileCollection = await dbClient.filesCollection();
       const { insertedId } = await fileCollection.insertOne(newFile);
-
       return res.status(201).json({
         id: insertedId.toString(),
         userId,
