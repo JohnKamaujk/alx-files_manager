@@ -112,10 +112,11 @@ class FilesController {
     try {
       const { user } = req;
       const { id } = req.params;
+      const userId = user._id.toString();
       const filesCollection = await dbClient.filesCollection();
       const file = await filesCollection.findOne({
-        _id: ObjectId(id),
-        userId: ObjectId(user._id),
+        _id: ObjectId(ObjectId.isValid(id) ? id : NULL_ID),
+        userId: ObjectId(ObjectId.isValid(userId) ? userId : NULL_ID),
       });
 
       if (!file) {
@@ -124,7 +125,7 @@ class FilesController {
 
       return res.status(200).json({
         id,
-        userId: user._id.toString(),
+        userId,
         name: file.name,
         type: file.type,
         isPublic: file.isPublic,
