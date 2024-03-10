@@ -149,14 +149,16 @@ class FilesController {
     try {
       const { user } = req;
       const parentId = req.query.parentId || ROOT_FOLDER_ID.toString();
+      console.log(parentId);
       const page = parseInt(req.query.page, 10) || 0;
       const filesFilter = {
         userId: user._id,
         parentId:
-          parentId === ROOT_FOLDER_ID || ROOT_FOLDER_ID.toString()
+          parentId === ROOT_FOLDER_ID.toString()
             ? ROOT_FOLDER_ID.toString()
             : ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID),
       };
+      console.log(filesFilter.parentId);
 
       const filesCollection = await dbClient.filesCollection();
       const files = await filesCollection
