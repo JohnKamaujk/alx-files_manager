@@ -160,30 +160,29 @@ class FilesController {
       };
 
       const filesCollection = await dbClient.filesCollection();
-      const files = filesCollection
-        .aggregate([
-          { $match: filesFilter },
-          { $sort: { _id: -1 } },
-          { $skip: page * MAX_FILES_PER_PAGE },
-          { $limit: MAX_FILES_PER_PAGE },
-          {
-            $project: {
-              _id: 0,
-              id: '$_id',
-              userId: '$userId',
-              name: '$name',
-              type: '$type',
-              isPublic: '$isPublic',
-              parentId: {
-                $cond: {
-                  if: { $eq: ['$parentId', '0'] },
-                  then: 0,
-                  else: '$parentId',
-                },
+      const files = filesCollection.aggregate([
+        { $match: filesFilter },
+        { $sort: { _id: -1 } },
+        { $skip: page * MAX_FILES_PER_PAGE },
+        { $limit: MAX_FILES_PER_PAGE },
+        {
+          $project: {
+            _id: 0,
+            id: '$_id',
+            userId: '$userId',
+            name: '$name',
+            type: '$type',
+            isPublic: '$isPublic',
+            parentId: {
+              $cond: {
+                if: { $eq: ['$parentId', '0'] },
+                then: 0,
+                else: '$parentId',
               },
             },
           },
-        ])
+        },
+      ])
         .toArray();
 
       return res.status(200).json(files);
