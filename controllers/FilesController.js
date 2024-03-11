@@ -158,7 +158,6 @@ class FilesController {
       } else {
         filesFilter.parentId = ObjectId(parentId);
       }
-      console.log(filesFilter.parentId);
 
       const filesCollection = await dbClient.filesCollection();
       const files = await filesCollection
@@ -166,17 +165,27 @@ class FilesController {
           { $match: filesFilter },
           { $skip: page * MAX_FILES_PER_PAGE },
           { $limit: MAX_FILES_PER_PAGE },
+          {
+            $project: {
+              _id: 0,
+              id: '$_id',
+              userId: '$userId',
+              name: '$name',
+              type: '$type',
+              isPublic: '$isPublic',
+              parentId: {
+                $cond: {
+                  if: { $eq: ['$parentId', '0'] },
+                  then: 0,
+                  else: '$parentId',
+                },
+              },
+            },
+          },
         ])
         .toArray();
-      console.log(files);
 
-      const modifyResult = files.map((file) => ({
-        ...file,
-        id: file._id, // rename _id to id
-        _id: undefined, // remove _id
-      }));
-      console.log(modifyResult);
-      return res.json(modifyResult);
+      return res.json(files);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
