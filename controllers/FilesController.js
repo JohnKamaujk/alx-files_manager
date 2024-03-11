@@ -207,17 +207,16 @@ class FilesController {
       if (!file) {
         return res.status(404).json({ error: 'Not found' });
       }
-      const result = await filesCollection.updateOne(fileFilter, {
+      await filesCollection.updateOne(fileFilter, {
         $set: { isPublic: true },
       });
-      const updatedFile = result.value;
       return res.status(200).json({
         id,
         userId,
-        name: updatedFile.name,
-        type: updatedFile.type,
-        isPublic: updatedFile.isPublic,
-        parentId: updatedFile.parentId,
+        name: file.name,
+        type: file.type,
+        isPublic: true,
+        parentId: file.parentId,
       });
     } catch (error) {
       console.error(error);
@@ -236,7 +235,7 @@ class FilesController {
       const { id } = req.params;
       const userId = user._id.toString();
       const fileFilter = {
-        _id: ObjectId(ObjectId.isValidId(id) ? id : NULL_ID),
+        _id: ObjectId(ObjectId.isValid(id) ? id : NULL_ID),
         userId: ObjectId(userId),
       };
       const filesCollection = await dbClient.filesCollection();
@@ -245,17 +244,16 @@ class FilesController {
       if (!file) {
         return res.status(404).json({ error: 'Not found' });
       }
-      const result = await filesCollection.updateOne(fileFilter, {
+      await filesCollection.updateOne(fileFilter, {
         $set: { isPublic: false },
       });
-      const updatedFile = result.value;
       return res.status(200).json({
         id,
         userId,
-        name: updatedFile.name,
-        type: updatedFile.type,
-        isPublic: updatedFile.isPublic,
-        parentId: updatedFile.parentId,
+        name: file.name,
+        type: file.type,
+        isPublic: false,
+        parentId: file.parentId,
       });
     } catch (error) {
       console.error(error);
