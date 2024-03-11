@@ -186,6 +186,70 @@ class FilesController {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   }
+
+  static async putPublish(req, res) {
+    try {
+      const { user } = req;
+      const { id } = req.params;
+      const userId = user._id.toString();
+      const fileFilter = {
+        _id: ObjectId(ObjectId.isValid(id) ? id : NULL_ID),
+        userId: ObjectId(userId),
+      };
+      const filesCollection = await dbClient.filesCollection();
+      const file = await filesCollection.findOne(fileFilter);
+
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      const result = await filesCollection.updateOne(fileFilter, { $set: { isPublic: true } });
+      const updatedFile = result.value;
+      return res.status(200).json({
+        id,
+        userId,
+        name: updatedFile.name,
+        type: updatedFile.type,
+        isPublic: updatedFile.isPublic,
+        parentId: updatedFile.parentId,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  static async putUnpublish(req, res) {
+    try {
+      const { user } = req;
+      const { id } = req.params;
+      const userId = user._id.toString();
+      const fileFilter = {
+        _id: ObjectId(ObjectId.isValidId(id) ? id : NULL_ID),
+        userId: ObjectId(userId),
+      };
+      const filesCollection = await dbClient.filesCollection();
+      const file = await filesCollection.findOne(fileFilter);
+
+      if (!file) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+      const result = await filesCollection.updateOne(fileFilter, {
+        $set: { isPublic: false },
+      });
+      const updatedFile = result.value;
+      return res.status(200).json({
+        id,
+        userId,
+        name: updatedFile.name,
+        type: updatedFile.type,
+        isPublic: updatedFile.isPublic,
+        parentId: updatedFile.parentId,
+      });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
 }
 
 export default FilesController;
