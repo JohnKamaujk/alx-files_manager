@@ -173,13 +173,7 @@ class FilesController {
               name: '$name',
               type: '$type',
               isPublic: '$isPublic',
-              parentId: {
-                $cond: {
-                  if: { $eq: ['$parentId', '0'] },
-                  then: 0,
-                  else: '$parentId',
-                },
-              },
+              parentId: '$parentId',
               localPath: '$localPath',
             },
           },
