@@ -148,7 +148,7 @@ class FilesController {
   static async getIndex(req, res) {
     try {
       const { user } = req;
-      const { parentId } = req.query || '0';
+      const parentId = req.query.parentId || '0';
       const page = parseInt(req.query.page, 10) || 0;
       const filesFilter = {
         userId: ObjectId(user._id),
@@ -158,6 +158,7 @@ class FilesController {
       } else {
         filesFilter.parentId = ObjectId(parentId);
       }
+      console.log(filesFilter.parentId);
 
       const filesCollection = await dbClient.filesCollection();
       const files = await filesCollection
@@ -167,12 +168,14 @@ class FilesController {
           { $limit: MAX_FILES_PER_PAGE },
         ])
         .toArray();
+      console.log(files);
 
       const modifyResult = files.map((file) => ({
         ...file,
         id: file._id, // rename _id to id
         _id: undefined, // remove _id
       }));
+      console.log(modifyResult);
       return res.json(modifyResult);
     } catch (error) {
       console.error(error);
