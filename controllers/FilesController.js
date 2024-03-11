@@ -73,7 +73,7 @@ class FilesController {
         isPublic,
         parentId:
           parentId === ROOT_FOLDER_ID || parentId === ROOT_FOLDER_ID.toString()
-            ? '0'
+            ? 0
             : ObjectId(parentId),
       };
       await mkDirAsync(baseDir, { recursive: true });
@@ -152,7 +152,7 @@ class FilesController {
       };
       if (parentId) {
         if (parentId === '0') {
-          filesFilter.parentId = parentId;
+          filesFilter.parentId = parseInt(parentId, 10);
         } else {
           filesFilter.parentId = ObjectId(
             ObjectId.isValid(parentId) ? parentId : NULL_ID,
