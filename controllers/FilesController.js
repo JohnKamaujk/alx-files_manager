@@ -153,7 +153,7 @@ class FilesController {
       if (parentId === '0') {
         filesFilter.parentId = parentId;
       } else {
-        filesFilter.parentId = ObjectId(parentId);
+        filesFilter.parentId = ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID);
       }
 
       const filesCollection = await dbClient.filesCollection();
