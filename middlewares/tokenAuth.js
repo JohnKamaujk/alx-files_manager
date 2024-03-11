@@ -1,6 +1,4 @@
-import { ObjectId } from 'mongodb';
-import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
+import getUser from '../utils/getUser';
 /**
  * Middleware for token-based authentication.
  * It validates the token and attaches the user to the request object.
@@ -12,18 +10,7 @@ import redisClient from '../utils/redis';
  */
 async function tokenAuth(req, res, next) {
   try {
-    const token = req.headers['x-token'];
-    if (!token) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const userId = await redisClient.get(`auth_${token}`);
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const usersCollection = await dbClient.usersCollection();
-    const user = await usersCollection.findOne({ _id: ObjectId(userId) });
+    const user = await getUser(req);
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }

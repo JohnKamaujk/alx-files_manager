@@ -12,13 +12,14 @@ const router = express.Router();
 router.get('/status', AppController.getStatus);
 router.get('/stats', AppController.getStats);
 router.post('/users', UsersController.postNew);
+router.get('/users/me', tokenAuth, UsersController.getMe);
 router.get('/connect', basicAuth, AuthController.getConnect);
 router.get('/disconnect', tokenAuth, AuthController.getDisconnect);
-router.get('/users/me', tokenAuth, UsersController.getMe);
 router.post('/files', tokenAuth, FilesController.postUpload);
 router.get('/files/:id', tokenAuth, FilesController.getShow);
 router.get('/files', tokenAuth, FilesController.getIndex);
 router.put('/files/:id/publish', tokenAuth, FilesController.putPublish);
 router.put('/files/:id/unpublish', tokenAuth, FilesController.putUnpublish);
+router.get('/files/:id/data', FilesController.getFile);
 
 export default router;
