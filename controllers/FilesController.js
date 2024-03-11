@@ -148,19 +148,15 @@ class FilesController {
   static async getIndex(req, res) {
     try {
       const { user } = req;
-      const { parentId } = req.query;
+      const { parentId } = req.query || '0';
       const page = parseInt(req.query.page, 10) || 0;
       const filesFilter = {
-        userId: user._id,
+        userId: ObjectId(user._id),
       };
-      if (parentId) {
-        if (parentId === ROOT_FOLDER_ID.toString()) {
-          filesFilter.parentId = ROOT_FOLDER_ID.toString();
-        } else if (ObjectId.isValid(parentId)) {
-          filesFilter.parentId = ObjectId(parentId);
-        } else {
-          filesFilter.parentId = ObjectId(NULL_ID);
-        }
+      if (parentId === '0') {
+        filesFilter.parentId = parentId;
+      } else {
+        filesFilter.parentId = ObjectId(parentId);
       }
 
       const filesCollection = await dbClient.filesCollection();
@@ -169,27 +165,15 @@ class FilesController {
           { $match: filesFilter },
           { $skip: page * MAX_FILES_PER_PAGE },
           { $limit: MAX_FILES_PER_PAGE },
-          {
-            $project: {
-              _id: undefined,
-              id: '$_id',
-              userId: '$userId',
-              name: '$name',
-              type: '$type',
-              isPublic: '$isPublic',
-              parentId: {
-                $cond: {
-                  if: { $eq: ['$parentId', '0'] },
-                  then: 0,
-                  else: '$parentId',
-                },
-              },
-            },
-          },
         ])
         .toArray();
 
-      return res.status(200).json(files);
+      const modifyResult = files.map((file) => ({
+        ...file,
+        id: file._id, // rename _id to id
+        _id: undefined, // remove _id
+      }));
+      return res.json(modifyResult);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
