@@ -172,7 +172,7 @@ class FilesController {
           { $limit: MAX_FILES_PER_PAGE },
           {
             $project: {
-              _id: 0,
+              _id: undefined,
               id: '$_id',
               userId: '$userId',
               name: '$name',
