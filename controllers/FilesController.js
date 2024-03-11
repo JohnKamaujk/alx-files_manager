@@ -167,7 +167,6 @@ class FilesController {
       const files = await filesCollection
         .aggregate([
           { $match: filesFilter },
-          { $sort: { _id: 1 } },
           { $skip: page * MAX_FILES_PER_PAGE },
           { $limit: MAX_FILES_PER_PAGE },
           {
