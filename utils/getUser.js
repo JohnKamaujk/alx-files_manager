@@ -20,7 +20,7 @@ const getUser = async (req) => {
     const usersCollection = await dbClient.usersCollection();
     const user = await usersCollection.findOne({ _id: ObjectId(userId) });
 
-    return user;
+    return user || null;
   } catch (error) {
     console.error('Error fetching user:', error);
     return null;
