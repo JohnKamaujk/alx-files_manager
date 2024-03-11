@@ -277,10 +277,10 @@ class FilesController {
     try {
       const user = await getUser(req);
       const userId = user ? user._id.toString() : '';
-      const { fileId } = req.params;
+      const { id } = req.params;
 
       const fileFilter = {
-        _id: ObjectId(ObjectId.isValid(fileId) ? fileId : NULL_ID),
+        _id: ObjectId(ObjectId.isValid(id) ? id : NULL_ID),
       };
 
       const filesCollection = await dbClient.filesCollection();
@@ -295,6 +295,7 @@ class FilesController {
       }
 
       const filePath = file.localPath;
+      console.log(filePath);
 
       if (!existsSync(filePath)) {
         return res.status(404).json({ error: 'Not found' });
