@@ -171,7 +171,6 @@ class FilesController {
               type: '$type',
               isPublic: '$isPublic',
               parentId: '$parentId',
-              localPath: '$localPath',
             },
           },
         ])
