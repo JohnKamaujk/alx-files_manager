@@ -129,10 +129,7 @@ class FilesController {
         name: file.name,
         type: file.type,
         isPublic: file.isPublic,
-        parentId:
-          file.parentId === ROOT_FOLDER_ID.toString()
-            ? 0
-            : file.parentId.toString(),
+        parentId: file.parentId,
       });
     } catch (error) {
       console.error(error);
