@@ -187,6 +187,11 @@ class FilesController {
     }
   }
 
+  /**
+   * Updates a file by setting publish to true.
+   * @param {Request} req The Express request object.
+   * @param {Response} res The Express response object.
+   */
   static async putPublish(req, res) {
     try {
       const { user } = req;
@@ -202,7 +207,9 @@ class FilesController {
       if (!file) {
         return res.status(404).json({ error: 'Not found' });
       }
-      const result = await filesCollection.updateOne(fileFilter, { $set: { isPublic: true } });
+      const result = await filesCollection.updateOne(fileFilter, {
+        $set: { isPublic: true },
+      });
       const updatedFile = result.value;
       return res.status(200).json({
         id,
@@ -218,6 +225,11 @@ class FilesController {
     }
   }
 
+  /**
+   * Updates a file by setting publish to false.
+   * @param {Request} req The Express request object.
+   * @param {Response} res The Express response object.
+   */
   static async putUnpublish(req, res) {
     try {
       const { user } = req;
