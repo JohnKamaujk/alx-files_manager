@@ -1,10 +1,17 @@
 import { tmpdir } from 'os';
 import { promisify } from 'util';
 import { v4 as uuidv4 } from 'uuid';
-import { mkdir, writeFile } from 'fs';
+import {
+  mkdir, writeFile, stat, existsSync, realpath,
+} from 'fs';
+import { contentType } from 'mime-types';
 import { join as joinPath } from 'path';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
+import getUser from '../utils/getUser';
+
+const statAsync = promisify(stat);
+const realpathAsync = promisify(realpath);
 
 const VALID_FILE_TYPES = {
   folder: 'folder',
@@ -255,6 +262,55 @@ class FilesController {
         isPublic: false,
         parentId: file.parentId,
       });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  /**
+   * Retrieves the content of a file.
+   * @param {Request} req The Express request object.
+   * @param {Response} res The Express response object.
+   */
+  static async getFile(req, res) {
+    try {
+      const user = await getUser(req);
+      const userId = user ? user._id.toString() : '';
+      const { fileId } = req.params;
+
+      const fileFilter = {
+        _id: ObjectId(ObjectId.isValid(fileId) ? fileId : NULL_ID),
+      };
+
+      const filesCollection = await dbClient.filesCollection();
+      const file = await filesCollection.findOne(fileFilter);
+
+      if (!file || (!file.isPublic && file.userId.toString() !== userId)) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      if (file.type === VALID_FILE_TYPES.folder) {
+        return res.status(400).json({ error: 'A folder doesn\'t have content' });
+      }
+
+      const filePath = file.localPath;
+
+      if (!existsSync(filePath)) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      const fileInfo = await statAsync(filePath);
+      if (!fileInfo.isFile()) {
+        return res.status(404).json({ error: 'Not found' });
+      }
+
+      const absoluteFilePath = await realpathAsync(filePath);
+      res.setHeader(
+        'Content-Type',
+        contentType(file.name) || 'text/plain; charset=utf-8',
+      );
+      return res.status(200).sendFile(absoluteFilePath);
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });

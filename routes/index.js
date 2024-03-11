@@ -20,5 +20,6 @@ router.get('/files/:id', tokenAuth, FilesController.getShow);
 router.get('/files', tokenAuth, FilesController.getIndex);
 router.put('/files/:id/publish', tokenAuth, FilesController.putPublish);
 router.put('/files/:id/unpublish', tokenAuth, FilesController.putUnpublish);
+router.get('/files/:id/data', FilesController.getFile);
 
 export default router;
