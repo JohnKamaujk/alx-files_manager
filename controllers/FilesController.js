@@ -145,15 +145,19 @@ class FilesController {
   static async getIndex(req, res) {
     try {
       const { user } = req;
-      const parentId = req.query.parentId || '0';
+      const { parentId } = req.query;
       const page = parseInt(req.query.page, 10) || 0;
       const filesFilter = {
         userId: ObjectId(user._id),
       };
-      if (parentId === '0') {
-        filesFilter.parentId = parentId;
-      } else {
-        filesFilter.parentId = ObjectId(ObjectId.isValid(parentId) ? parentId : NULL_ID);
+      if (parentId) {
+        if (parentId === '0') {
+          filesFilter.parentId = parentId;
+        } else {
+          filesFilter.parentId = ObjectId(
+            ObjectId.isValid(parentId) ? parentId : NULL_ID,
+          );
+        }
       }
 
       const filesCollection = await dbClient.filesCollection();
