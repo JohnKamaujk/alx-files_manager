@@ -180,7 +180,7 @@ class FilesController {
                   else: '$parentId',
                 },
               },
-              localPath:'$localPath'
+              localPath: '$localPath',
             },
           },
         ])
