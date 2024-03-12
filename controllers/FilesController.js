@@ -5,6 +5,7 @@ import {
   mkdir, writeFile, stat, existsSync, realpath,
 } from 'fs';
 import { contentType } from 'mime-types';
+import Queue from 'bull/lib/queue';
 import { join as joinPath } from 'path';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
@@ -24,6 +25,7 @@ const mkDirAsync = promisify(mkdir);
 const writeFileAsync = promisify(writeFile);
 const NULL_ID = Buffer.alloc(24, '0').toString('utf-8');
 const MAX_FILES_PER_PAGE = 20;
+const fileQueue = new Queue('thumbnail generation');
 
 class FilesController {
   /**
@@ -92,8 +94,14 @@ class FilesController {
       }
 
       const { insertedId } = await fileCollection.insertOne(newFile);
+      const fileId = insertedId.toString();
+      // start thumbnail generation worker
+      if (type === VALID_FILE_TYPES.image) {
+        const jobName = `Image thumbnail [${userId}-${fileId}]`;
+        fileQueue.add({ userId, fileId, name: jobName });
+      }
       return res.status(201).json({
-        id: insertedId.toString(),
+        id: fileId,
         userId,
         name,
         type,
@@ -278,6 +286,7 @@ class FilesController {
       const user = await getUser(req);
       const userId = user ? user._id.toString() : '';
       const { id } = req.params;
+      const size = req.query.size || null;
 
       const fileFilter = {
         _id: ObjectId(ObjectId.isValid(id) ? id : NULL_ID),
@@ -291,11 +300,13 @@ class FilesController {
       }
 
       if (file.type === VALID_FILE_TYPES.folder) {
-        return res.status(400).json({ error: 'A folder doesn\'t have content' });
+        return res.status(400).json({ error: "A folder doesn't have content" });
       }
 
-      const filePath = file.localPath;
-      console.log(filePath);
+      let filePath = file.localPath;
+      if (size) {
+        filePath = `${file.localPath}_${size}`;
+      }
 
       if (!existsSync(filePath)) {
         return res.status(404).json({ error: 'Not found' });
