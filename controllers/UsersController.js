@@ -1,5 +1,8 @@
 import sha1 from 'sha1';
+import Queue from 'bull/lib/queue';
 import dbClient from '../utils/db';
+
+const userQueue = new Queue('email sending');
 
 /**
  * Controller for handling user-related operations.
@@ -37,8 +40,10 @@ class UsersController {
       };
 
       const { insertedId } = await usersCollection.insertOne(newUser);
+      const userId = insertedId.toString();
 
-      const createdUser = { id: insertedId.toString(), email };
+      const createdUser = { id: userId, email };
+      userQueue.add({ userId });
       return res.status(201).json(createdUser);
     } catch (error) {
       console.error(error);
@@ -56,7 +61,9 @@ class UsersController {
     try {
       const { user } = req;
 
-      return res.status(200).json({ id: user._id.toString(), email: user.email });
+      return res
+        .status(200)
+        .json({ id: user._id.toString(), email: user.email });
     } catch (error) {
       console.error(error);
       return res.status(500).json({ error: 'Internal Server Error' });
