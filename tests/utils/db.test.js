@@ -4,6 +4,7 @@ import dbClient from '../../utils/db';
 describe('+ DBClient utility', () => {
   before(function (done) {
     this.timeout(10000);
+    setTimeout(done, 4000);
     Promise.all([dbClient.usersCollection(), dbClient.filesCollection()])
       .then(([usersCollection, filesCollection]) => {
         Promise.all([
